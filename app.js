@@ -16,21 +16,41 @@ app.use(express.urlencoded({
     extended: true
 }));
 
-app.get('/', function (req, res) {
+function celsiusToFahrenheit(value) {
+    return Math.round(value * 1.8 + 32, 2);
+}
+
+function fahrenheitToCelsius(value) {
+    return Math.round((value - 32) / 1.8, 2);
+}
+
+app.get('/celsius-to-fahrenheit', function (req, res) {
     // Aquí pueden hacer lo que ustedes quieran
-    const price = req.query.price;
-    if (typeof req.query.price === "undefined") {
-        res.status(400).send({"error": "`price` query param required"})
-    }
-    res.send(getIva(price));
+    const temperature = parseFloat(req.query.value);
+    res.send({"value": celsiusToFahrenheit(temperature)});
 })
 
-app.post('/', function (req, res) {
+app.get('/fahrenheit-to-celsius', function (req, res) {
     // Aquí pueden hacer lo que ustedes quieran
-    const prices = req.body.prices;
-    const pricesWithIva = prices.map(price => getIva(price));
-    res.send(pricesWithIva);
+    const temperature = parseFloat(req.query.value);
+    res.send({"value": fahrenheitToCelsius(temperature)});
 })
+
+app.post('/bulk-convertion', function(req, res) {
+    const type = req.query.type;
+    const data = req.body;
+    switch (type) {
+        case 'f':
+            res.send(data.map(value => fahrenheitToCelsius(value)))
+            break;
+        case 'c':
+            res.send(data.map(value => celsiusToFahrenheit(value)))
+            break;
+        default:
+            res.status(400).send({"message": "Error"})
+            break;
+    }
+});
 
 // Bootstrap server
 const server = app.listen(process.env.PORT || 3000, function () {
